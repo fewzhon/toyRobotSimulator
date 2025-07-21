@@ -1,113 +1,101 @@
-// Web_App_Handler.gs
+/**
+ * Web_App_Handler.gs
+ *
+ * This file contains the server-side functions for the Google Apps Script web application.
+ * It serves the HTML content and provides endpoints for client-side JavaScript to
+ * interact with the Toy Robot Simulator's core logic and testing functions.
+ */
 
 /**
- * Serves the HTML file for the web application.
- * @param {Object} e - The event object.
- * @return {GoogleAppsScript.HTML.HtmlOutput}
+ * Serves the main HTML file ('README.html') for the web application.
+ * This function is automatically called when the web app's URL is accessed via a GET request.
+ *
+ * @param {GoogleAppsScript.Events.AppsScriptHttpRequestEvent} e The event object containing details about the HTTP GET request.
+ * @returns {GoogleAppsScript.HTML.HtmlOutput} The HTML output to be rendered in the browser.
  */
 function doGet(e) {
+  Logger.log("[Web_App_Handler_doGet] Web App accessed (doGet function called).");
   return HtmlService.createTemplateFromFile('README')
-      .evaluate()
-      .setTitle('Toy Robot Simulator');
+    .evaluate()
+    .setTitle('Toy Robot Simulator'); // Sets the browser tab title
 }
 
 /**
- * Helper function to include other HTML files (if needed, not used in this basic setup).
- * @param {string} filename The name of the HTML file to include.
- * @return {string} The content of the included HTML file.
+ * A helper function to include content from other HTML files within a main HTML template.
+ * This is used with `<?!= include('filename') ?>` in HTML files.
+ * While not explicitly used in this single README.html setup, it's a common pattern.
+ *
+ * @param {string} filename The name of the HTML file to include (without .html extension).
+ * @returns {string} The HTML content of the specified file.
  */
 function include(filename) {
+  Logger.log(`[Web_App_Handler_Include] Attempting to include HTML file: ${filename}`);
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**
- * Runs a single robot command received from the web app.
- * @param {string} commandLine The command string (e.g., "PLACE 0,0,NORTH").
- * @return {string} The report output or a status message.
+ * Processes a sequence of robot commands received from the web application's frontend.
+ * It passes these commands to the `runCommands` function (defined in roboSimulator.gs)
+ * and returns the collected reports for display in the web app UI.
+ *
+ * @param {string[]} commandsArray An array of command strings (e.g., ["PLACE 0,0,NORTH", "MOVE", "REPORT"]).
+ * @returns {string} All collected report outputs and messages from the simulation, joined by newlines.
  */
-function runSingleCommandFromWebApp(commandLine) {
-  // We need a way to maintain the robot's state across calls,
-  // since doGet and subsequent calls are stateless in Apps Script by default.
-  // A simple way is to store robot state in UserProperties or ScriptProperties.
-  // For this quick demo, let's re-instantiate the robot and run the command.
-  // This means the robot's state won't persist if you send commands one by one.
+function runCommandSequenceFromWebApp(commandsArray) {
+  Logger.log(`[Web_App_Handler_RunSequence] Called. Received ${commandsArray.length} commands.`);
+  Logger.log(`[Web_App_Handler_RunSequence] Commands received: ${JSON.stringify(commandsArray)}`);
 
-  // --- IMPORTANT LIMITATION FOR THIS QUICK WEB APP ---
-  // If you send commands like MOVE, LEFT, RIGHT one by one, the robot's
-  // state (position, direction) will NOT persist between calls to runSingleCommandFromWebApp.
-  // This function will create a *new* robot every time.
-  // For persistent state, you'd need to serialize/deserialize robot.x, y, direction.
-  // For a quick demo, we'll run a full sequence of commands for the simulation.
-  // OR, you could make the `robot` instance a global variable within this .gs file.
-  // Let's modify runCommands slightly to facilitate this, or create a new wrapper.
+  // Call the core simulation logic (defined in roboSimulator.gs)
+  const reports = runCommands(commandsArray);
 
-  // To properly handle state in a web app, you might need:
-  // 1. Store robot state in Script Properties between calls.
-  // 2. Or, run a full sequence of commands in one go.
+  Logger.log(`[Web_App_Handler_RunSequence] runCommands returned ${reports.length} reports.`);
+  Logger.log(`[Web_App_Handler_RunSequence] Reports from runCommands: ${JSON.stringify(reports)}`);
 
-  // Let's re-design `runCommands` in `roboSimulator.gs` slightly to return all outputs.
-  // For now, we'll assume `runCommands` exists and we can call it.
-  
-  // This is a quick workaround:
-  const robot = new Robot(); // Creates a new robot instance for each command received
-
-  // Re-use runCommands but we need to capture output
-  // Temporarily override console.log for this scope
-  const originalConsoleLog = console.log;
-  let capturedReports = [];
-  console.log = function(message) {
-    capturedReports.push(message);
-    originalConsoleLog(message); // Still log to Apps Script logger
-  };
-
-  runCommands([commandLine]); // runCommands expects an array
-
-  console.log = originalConsoleLog; // Restore console.log
-
-  if (capturedReports.length > 0) {
-    return capturedReports.join('\n');
-  } else {
-    // If the command produced no direct report (e.g., MOVE, LEFT, RIGHT)
-    // You might want to return the *current state* after the command.
-    // This would require robot.report() to return its value, which we've already done!
-    // So let's return the robot's current report after any command.
-    return robot.report(); // This now returns a string
-  }
+  return reports.join('\n'); // Join reports for display in the HTML textarea
 }
 
-
 /**
- * Runs all unit tests and returns their results as a string.
- * @return {string} Formatted test results.
+ * Runs all unit tests (defined in test.gs) and captures their Logger output
+ * to return as a string for display in the web application UI.
+ * @returns {string} A string containing the results of all unit tests.
  */
 function runAllUnitTestsForWebApp() {
+  Logger.log("[Web_App_Handler_RunTests] runAllUnitTestsForWebApp called.");
+  // Temporarily override Logger.log to capture messages for web app display
   const originalLoggerLog = Logger.log;
   let capturedLogs = [];
-  Logger.log = function(message) { // Override Logger.log to capture messages
+  Logger.log = function(message) {
     capturedLogs.push(message);
-    originalLoggerLog(message); // Still log to Apps Script logger
+    originalLoggerLog(message); // Still log to the actual Apps Script logger
   };
 
-  runAllUnitTests(); // Call your existing test function
+  runAllUnitTests(); // Call the actual unit test function from test.gs
 
-  Logger.log = originalLoggerLog; // Restore Logger.log
+  // Restore the original Logger.log function
+  Logger.log = originalLoggerLog;
+  Logger.log(`[Web_App_Handler_RunTests] runAllUnitTestsForWebApp: Captured ${capturedLogs.length} logs.`);
   return capturedLogs.join('\n'); // Return all captured logs as a single string
 }
 
 /**
- * Runs all integration tests and returns their results as a string.
- * @return {string} Formatted test results.
+ * Runs all integration tests (defined in test.gs) and captures their Logger output
+ * to return as a string for display in the web application UI.
+ * @returns {string} A string containing the results of all integration tests.
  */
 function runIntegrationTestsForWebApp() {
+  Logger.log("[Web_App_Handler_RunTests] runIntegrationTestsForWebApp called.");
+  // Temporarily override Logger.log to capture messages for web app display
   const originalLoggerLog = Logger.log;
   let capturedLogs = [];
-  Logger.log = function(message) { // Override Logger.log to capture messages
+  Logger.log = function(message) {
     capturedLogs.push(message);
-    originalLoggerLog(message); // Still log to Apps Script logger
+    originalLoggerLog(message); // Still log to the actual Apps Script logger
   };
 
-  runIntegrationTests(); // Call your existing integration test function
+  runIntegrationTests(); // Call the actual integration test function from test.gs
 
-  Logger.log = originalLoggerLog; // Restore Logger.log
+  // Restore the original Logger.log function
+  Logger.log = originalLoggerLog;
+  Logger.log(`[Web_App_Handler_RunTests] runIntegrationTestsForWebApp: Captured ${capturedLogs.length} logs.`);
   return capturedLogs.join('\n'); // Return all captured logs as a single string
 }

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Toy Robot Simulator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1, h2 {
+      color: #2c3e50;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      padding: 1em;
+      overflow: auto;
+      border-left: 5px solid #ccc;
+    }
+    ul {
+      padding-left: 1.2rem;
+    }
+    a {
+      color: #2980b9;
+    }
+    #output, #testResults {
+      background-color: #e8f4f8;
+      border: 1px solid #b3e0ff;
+      padding: 1rem;
+      margin-top: 1rem;
+      white-space: pre-wrap; /* Preserve whitespace and wrap text */
+      font-family: monospace;
+    }
+    .controls {
+      margin-top: 2rem;
+      border-top: 1px solid #eee;
+      padding-top: 1rem;
+    }
+    /* Removed unused .controls input[type="text"] styles */
+    .controls button {
+      padding: 0.5rem 1rem;
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .controls button:hover {
+      background-color: #3498db;
+    }
+    .test-buttons button {
+        margin-right: 0.5rem;
+        background-color: #27ae60; /* Green for tests */
+    }
+    .test-buttons button:hover {
+        background-color: #2ecc71;
+    }
+    .clear-button {
+      background-color: #f39c12; /* Orange color */
+    }
+    .clear-button:hover {
+      background-color: #f1c40f;
+    }
+    .controls textarea {
+      width: 80%;
+      height: 100px;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Toy Robot Simulator</h1>
+  <p>
+    This project implements a console application that simulates a toy robot moving on a 5x5 square tabletop, as specified by the Iress Junior Engineer Toy Robot Code Challenge.
+    <em>The application processes commands to place, move, turn, and report the robot's position, adhering to specific rules regarding table boundaries and command validity.</em>
+  </p>
+
+  <div class="controls">
+    <h2>Interactive Simulator</h2>
+    <p>Enter commands (one per line):</p>
+    <textarea id="commandInput" placeholder="PLACE 0,0,NORTH
+MOVE
+REPORT"></textarea>
+    <button onclick="runCommandSequence()">Run Commands</button>
+
+    <div id="output">Robot Output:</div>
+
+    <h2 style="margin-top: 2rem;">Run Tests</h2>
+    <div class="test-buttons">
+        <button onclick="runTests('unit')">Run Unit Tests</button>
+        <button onclick="runTests('integration')">Run Integration Tests</button>
+        <button onclick="runTests('all')">Run All Tests</button>
+        <button onclick="clearResults()" class="clear-button">Clear Results</button>
+    </div>
+    <div id="testResults" style="min-height: 50px;">Test Results:</div>
+  </div>
+
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#project-overview">Project Overview</a></li>
+    <li><a href="#technologies-used">Technologies Used</a></li>
+    <li><a href="#project-structure">Project Structure</a></li>
+    <li><a href="#setup-and-how-to-run">Setup and How to Run</a></li>
+    <li><a href="#running-tests">Running Tests</a></li>
+    <li><a href="#design-decisions">Design Decisions</a></li>
+    <li><a href="#submission-notes">Submission Notes</a></li>
+  </ol>
+
+  <h2 id="project-overview">1. Project Overview</h2>
+  <p>
+    The core purpose of this application is to simulate a robot's movement and state on a defined tabletop.
+    <em>It robustly handles various commands, ensuring the robot remains on the table and responds appropriately to invalid or premature commands.</em>
+    <em>The application outputs the robot's position and direction upon a <code>REPORT</code> command.</em>
+  </p>
+
+  <h2 id="technologies-used">2. Technologies Used</h2>
+  <ul>
+    <li><strong>Language:</strong> JavaScript (implemented within Google Apps Script)</li>
+    <li><strong>Environment:</strong> Google Apps Script</li>
+  </ul>
+  <p>
+    My choice to use Google Apps Script leverages my existing experience in building internal tooling and allows for efficient development and testing within a familiar JavaScript environment.
+  </p>
+
+  <h2 id="project-structure">3. Project Structure</h2>
+  <p>The project is structured into three <code>.gs</code> files within a single Google Apps Script project:</p>
+  <ul>
+    <li><code>roboSimulator.gs</code>: Contains the main application logic, including the <code>Robot</code> class and the <code>runCommands</code> function. This is the core simulation engine.</li>
+    <li><code>test_utils.gs</code>: Provides basic custom assertion functions (e.g., <code>assertEqual</code>, <code>assertNotNull</code>) necessary for running unit-like tests within the Google Apps Script environment.</li>
+    <li><code>test.gs</code>: Contains the unit tests for individual <code>Robot</code> class methods and integration tests (example scenarios) to demonstrate the <code>runCommands</code> function's behavior.</li>
+    <li><code>Web_App_Handler.gs</code>: Contains the <code>doGet</code> function for serving the web app and functions (`runSingleCommandFromWebApp`, `runAllUnitTestsForWebApp`, `runIntegrationTestsForWebApp`) that bridge client-side interactions with backend logic.</li>
+  </ul>
+
+  <h2 id="setup-and-how-to-run">4. Setup and How to Run</h2>
+  <ol>
+    <li>
+      <p><strong>Clone the GitHub Repository:</strong></p>
+      <pre><code>git clone https://github.com/fewzhon/toyRobotSimulator.git
+cd toyRobotSimulator</code></pre>
+    </li>
+    <li>
+      <p><strong>Create a new Google Apps Script project:</strong> Go to <a href="https://script.google.com/home/start" target="_blank">script.google.com/home/start</a> and click "New project".</p>
+    </li>
+    <li>
+      <p><strong>Transfer the files:</strong></p>
+      <ul>
+        <li>For each <code>.gs</code> file in the cloned repository (<code>roboSimulator.gs</code>, <code>test_utils.gs</code>, <code>test.gs</code>, <code>Web_App_Handler.gs</code>), create a corresponding new Script file in your Apps Script project (e.g., <code>File &gt; New &gt; Script file</code>), name it exactly the same (e.g., <code>roboSimulator.gs</code>), and paste the code from your local file into it.</li>
+        <li>For the <code>README.html</code> file, create a new HTML file in your Apps Script project (<code>File &gt; New &gt; HTML file</code>), name it <code>README</code>, and paste the code from your local <code>README.html</code> file into it.</li>
+      </ul>
+    </li>
+    <li>
+      <p><strong>Deploy as Web App:</strong></p>
+      <ul>
+        <li>In the Apps Script editor, go to <code>Deploy &gt; New deployment</code>.</li>
+        <li>For "Select type", choose "Web app".</li>
+        <li>Configure "Execute as: Me" and "Who has access: Anyone".</li>
+        <li>Click "Deploy".</li>
+        <li><strong>Copy the provided "Web app URL"</strong>. This is the link to your interactive simulator and documentation.</li>
+      </ul>
+    </li>
+    <li>
+      <p><strong>Access the Web App:</strong> Paste the copied "Web app URL" into your browser to interact with the Toy Robot Simulator and view the documentation.</p>
+    </li>
+    <li>
+      <p><strong>Run the main simulation (via UI):</strong> On the deployed web app, enter commands in the input field (e.g., <code>PLACE 0,0,NORTH</code>, then <code>MOVE</code>, then <code>REPORT</code>) and click "Run Command". The output will appear in the "Robot Output" area.</p>
+    </li>
+  </ol>
+
+  <h2 id="running-tests">5. Running Tests</h2>
+  <p>
+    Appropriate unit and integration tests are included to demonstrate the correctness and robustness of the solution.
+  </p>
+  <ol>
+    <li>Access the deployed Web App URL.</li>
+    <li>Use the "Run Unit Tests", "Run Integration Tests", or "Run All Tests" buttons in the "Interactive Simulator" section to execute tests directly from the browser.</li>
+    <li><strong>View Results:</strong> Test results will be displayed in the "Test Results" area on the page. For more detailed logs, you can still check the Google Apps Script Logger (`View > Executions`).
+  </ol>
+
+  <h2 id="design-decisions">6. Design Decisions</h2>
+  <ul>
+    <li><strong>Object-Oriented Approach:</strong> Core logic is encapsulated in the <code>Robot</code> class, managing state and behaviors (<code>place</code>, <code>move</code>, <code>turnLeft</code>, etc.).</li>
+    <li><strong>Separation of Concerns:</strong> The <code>Robot</code> class handles logic; <code>runCommands</code> parses input and drives execution. For the web app, `Web_App_Handler.gs` bridges client-side interactions with backend logic.</li>
+    <li><strong>Input Validation & Edge Case Handling:</strong>
+      <ul>
+        <li>Commands are ignored until a valid <code>PLACE</code> is executed.</li>
+        <li>All movements are pre-validated against table boundaries.</li>
+        <li>Invalid formats (bad coords or directions) are gracefully ignored.</li>
+      </ul>
+    </li>
+    <li><strong>Maintainability & Correctness:</strong> Clear naming, concise methods, and tests ensure the project is easy to extend and debug.</li>
+    <li>**Web Application Interactivity:** Implemented a simple UI to allow direct command input and test execution from the browser, enhancing usability and demonstration. *Note on State:* For the web app, the robot's state is reset with each `runSingleCommandFromWebApp` call due to Apps Script's stateless nature for simplicity of this quick implementation. For a more persistent interactive robot, state would need to be stored (e.g., in `PropertiesService`).</li>
+  </ul>
+
+  <h2 id="submission-notes">7. Submission Notes</h2>
+  <p>This project is delivered as Google Apps Script <code>.gs</code> files.</p>
+  <ul>
+    <li><strong>Deployed Web App URL:</strong><a href="https://script.google.com/a/macros/iress.com/s/AKfycby9UMXxKrQfXmEbUn9FtzhpEoqt9eFSmcoxhw3JpDbaGYLlH104-0pTxiiB3KhLut7J/exec" target="_blank">Toy Robot Simulator README [PROD Enviroment]</a></li>
+    <li><strong>GitHub:</strong> <a href="https://github.com/fewzhon/toyRobotSimulator" target="_blank">https://github.com/fewzhon/toyRobotSimulator</a></li>
+    <li>Alternative: Source files available as a <code>.zip</code> archive.</li>
+  </ul>
+
+  <script>
+    // Client-side JavaScript for interactivity
+
+    const commandInput = document.getElementById('commandInput');
+    const outputDiv = document.getElementById('output');
+    const testResultsDiv = document.getElementById('testResults');
+
+    // Function to run tests
+    function runTests(type) {
+      testResultsDiv.textContent = 'Running tests... Check Apps Script Logger for full details, results displayed below might be simplified.';
+      
+      let serverFunction;
+      if (type === 'unit') {
+        serverFunction = 'runAllUnitTestsForWebApp';
+      } else if (type === 'integration') {
+        serverFunction = 'runIntegrationTestsForWebApp';
+      } else if (type === 'all') {
+          // This would ideally call a main runner function, but for now, we'll run both sequentially
+          testResultsDiv.textContent = 'Running Unit Tests...\n';
+          google.script.run
+            .withSuccessHandler(function(unitResult) {
+                testResultsDiv.textContent += unitResult + '\n\nRunning Integration Tests...\n';
+                google.script.run
+                    .withSuccessHandler(function(integrationResult) {
+                        testResultsDiv.textContent += integrationResult;
+                    })
+                    .withFailureHandler(function(error) {
+                        testResultsDiv.textContent += 'Error running integration tests: ' + error.message;
+                        console.error(error);
+                    })
+                    .runIntegrationTestsForWebApp();
+            })
+            .withFailureHandler(function(error) {
+                testResultsDiv.textContent = 'Error running unit tests: ' + error.message;
+                console.error(error);
+            })
+            .runAllUnitTestsForWebApp();
+            return; // Exit after setting up sequential calls
+      }
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          testResultsDiv.textContent = 'Test Results:\n' + result;
+        })
+        .withFailureHandler(function(error) {
+          testResultsDiv.textContent = 'Error: ' + error.message;
+          console.error(error);
+        })
+        [serverFunction](); // Dynamically call the correct server-side function
+    }
+
+    // Attach event listeners after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // No need to explicitly attach if using inline onclick, but good practice
+    });
+
+    function runCommandSequence() { // Renamed from runCommand
+      const commandText = commandInput.value;
+      if (!commandText.trim()) { // Trim to check for empty or just whitespace
+        outputDiv.textContent = 'Please enter commands.';
+        return;
+      }
+
+      // Split the multiline input into an array of commands
+      const commandsArray = commandText.split('\n').map(cmd => cmd.trim()).filter(cmd => cmd.length > 0);
+
+      outputDiv.textContent = 'Processing...';
+
+      // Call the server-side Apps Script function that processes a sequence
+      google.script.run
+        .withSuccessHandler(function(result) {
+          outputDiv.textContent = 'Robot Output:\n' + result; // Display reports
+        })
+        .withFailureHandler(function(error) {
+          outputDiv.textContent = 'Error: ' + error.message;
+          console.error(error);
+        })
+        .runCommandSequenceFromWebApp(commandsArray); // New server function name and pass array
+    };
+
+    function clearResults() {
+      testResultsDiv.textContent = 'Test Results:'; // Reset to initial text
+    }
+  </script>
+</body>
+</html>
