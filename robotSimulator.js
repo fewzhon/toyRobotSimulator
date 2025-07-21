@@ -110,9 +110,9 @@ class Robot {
     report() {
         if (!this.isPlaced) {
             // As per problem, just ignore if not placed. No need to log "not placed" for final output.
-            return;
+            return "Robot not placed."; 
         }
-        console.log(`${this.x},${this.y},${this.direction}`);
+        return `${this.x},${this.y},${this.direction}`;
     }
 }
 

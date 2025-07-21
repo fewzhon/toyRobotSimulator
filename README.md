@@ -32,18 +32,25 @@ The project is structured into three `.gs` files within a single Google Apps Scr
 
 ## 4. Setup and How to Run
 
-To set up and run this application:
+To set up and run this application in your Google Apps Script environment:
 
-1.  **Create a new Google Apps Script project:** Go to `script.google.com/home/start` and click "New project".
-2.  **Create the files:**
-    * Rename the default `Code.gs` to `roboSimulator.gs` and paste the code from your `roboSimulator.gs` file.
-    * Add a new file (`File > New > Script file`), name it `test_utils.gs`, and paste the assertion functions provided by your coach.
-    * Add another new file, name it `test.gs`, and paste the code from your `test.gs` file.
-3.  **Run the main simulation:**
-    * Open the `test.gs` file in the Apps Script editor.
-    * From the function dropdown menu at the top, select `runIntegrationTests`.
-    * Click the "Run" button (play icon).
-    * View the output in the "Executions" log (`View > Executions`). [cite_start]The `REPORT` commands will output to this log[cite: 19].
+1.  **Clone the GitHub Repository:**
+    ```bash
+    git clone [https://github.com/fewzhon/toyRobotSimulator.git](https://github.com/fewzhon/toyRobotSimulator.git)
+    cd toyRobotSimulator
+    ```
+2.  **Create a new Google Apps Script project:** Go to `script.google.com/home/start` and click "New project".
+3.  **Transfer the files:**
+    * For each `.gs` file in the cloned repository (`roboSimulator.gs`, `test_utils.gs`, `test.gs`, `Web_App_Handler.gs`), create a corresponding new Script file in your Apps Script project (e.g., `File > New > Script file`), name it exactly the same (e.g., `roboSimulator.gs`), and paste the code from your local file into it.
+    * For the `README.html` file, create a new HTML file in your Apps Script project (`File > New > HTML file`), name it `README`, and paste the code from your local `README.html` file into it.
+4.  **Deploy as Web App:**
+    * In the Apps Script editor, go to `Deploy > New deployment`.
+    * For "Select type", choose "Web app".
+    * Configure "Execute as: Me" and "Who has access: Anyone".
+    * Click "Deploy".
+    * **Copy the provided "Web app URL"**. This is the link to your interactive simulator and documentation.
+5.  **Access the Web App:** Paste the copied "Web app URL" into your browser to interact with the Toy Robot Simulator and view the documentation.
+6.  **Run the main simulation (via UI):** On the deployed web app, enter commands in the input field (e.g., `PLACE 0,0,NORTH`, then `MOVE`, then `REPORT`) and click "Run Command". The output will appear in the "Robot Output" area.
 
 ## 5. Running Tests
 
